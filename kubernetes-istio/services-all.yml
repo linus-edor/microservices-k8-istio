@@ -1,0 +1,100 @@
+##############################################################################
+# callme service
+##############################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: callme
+  labels:
+    app: callme
+    service: callme
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: callme
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: call-me
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: callme-v1
+  labels:
+    app: callme
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: callme
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: callme
+        version: v1
+    spec:
+      serviceAccountName: call-me
+      containers:
+      - name: callme
+        image: linused/microservices-call-me:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+---
+
+###################################################################################
+# caller service
+###################################################################################
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: caller
+  labels:
+    app: caller
+    service: caller
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: caller
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: caller-service
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caller-v1
+  labels:
+    app: caller
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caller
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: caller
+        version: v1
+    spec:
+      serviceAccountName: caller-service
+      containers:
+      - name: caller
+        image: linused/microservices-caller:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+---
